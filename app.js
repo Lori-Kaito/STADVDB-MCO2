@@ -1,12 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- MOCK DATA ---
-    const mockFlightData = [
-        { id: 1, origin: 'Manila (MNL)', destination: 'Cebu (CEB)', capacity: 150 },
-        { id: 2, origin: 'Manila (MNL)', destination: 'Davao (DVO)', capacity: 100 },
-        { id: 3, origin: 'Cebu (CEB)', destination: 'Tokyo (NRT)', capacity: 1 },
-        { id: 4, origin: 'Manila (MNL)', destination: 'Singapore (SIN)', capacity: 200 }
-    ];
+// --- 1. MOCK DATA (Updated to match MCO2-Schema.sql) ---
+const mockFlightData = [
+    { 
+        id: 1, 
+        origin_code: 'MNL', 
+        destination_code: 'CEB', 
+        departure_time: '2025-12-25 10:00:00',
+        available_seats: 150, 
+        status: 'SCHEDULED' 
+    },
+    { 
+        id: 2, 
+        origin_code: 'MNL', 
+        destination_code: 'DVO', 
+        departure_time: '2025-12-26 14:00:00',
+        available_seats: 100, 
+        status: 'SCHEDULED' 
+    },
+    { 
+        id: 3, 
+        origin_code: 'CEB', 
+        destination_code: 'NRT', 
+        departure_time: '2025-12-27 09:30:00',
+        available_seats: 1,     // Low inventory for race condition test
+        status: 'SCHEDULED' 
+    }
+];
     let mockActiveHolds = [];
     let holdIdCounter = 0; 
     
@@ -21,27 +41,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const holdsListDiv = document.getElementById('holds-list');
 
     // --- BOOKING FUNCTIONS ---
-    async function fetchFlights() {
-        console.log('Pretending to fetch flights from API...');
-        await sleep(500); 
+async function fetchFlights() {
+    console.log('Pretending to fetch flights from API...');
+    await sleep(500); 
 
-        try {
-            const flights = mockFlightData; 
-            flightListDiv.innerHTML = ''; 
+    try {
+        const flights = mockFlightData; 
+        flightListDiv.innerHTML = ''; 
 
-            flights.forEach(flight => {
-                const flightCard = document.createElement('div');
-                flightCard.className = 'flight-card';
-                flightCard.innerHTML = `
-                    <h3>Flight ID: ${flight.id} ( ${flight.origin} to ${flight.destination} )</h3>
-                    <p><strong>Available Seats: ${flight.capacity}</strong></p>
-                `;
-                flightListDiv.appendChild(flightCard);
-            });
-        } catch (error) {
-            flightListDiv.innerHTML = '<p>Error loading flights.</p>';
-        }
+        flights.forEach(flight => {
+            const flightCard = document.createElement('div');
+            flightCard.className = 'flight-card';
+            
+            // Date formatting to make it look nice
+            const dateObj = new Date(flight.departure_time);
+            const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            flightCard.innerHTML = `
+                <h3>Flight #${flight.id}: ${flight.origin_code} ➝ ${flight.destination_code}</h3>
+                <p>Departure: <strong>${dateStr}</strong></p>
+                <p>Status: <span style="color:green">${flight.status}</span></p>
+                <p><strong>Available Seats: ${flight.available_seats}</strong></p>
+            `;
+            flightListDiv.appendChild(flightCard);
+        });
+    } catch (error) {
+        flightListDiv.innerHTML = '<p>Error loading flights.</p>';
     }
+}
 
     async function handleHoldSubmit(event) {
         event.preventDefault(); 
