@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeLeft = Math.round((hold.expiresAt - Date.now()) / 1000);
             const timerText = timeLeft > 0 ? `${timeLeft} seconds` : "Expired";
 
-            // UPDATED: Added data-id attributes to buttons so we know which hold to click
+            // Added data-id attributes to buttons so we know which hold to click
             card.innerHTML = `
                 <div class="hold-card-info">
                     <h3>Hold ID: ${hold.id} (Flight ${hold.flightId})</h3>
