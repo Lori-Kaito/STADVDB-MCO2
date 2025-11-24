@@ -1,3 +1,6 @@
+version: '3.8'
+
+# --- Database Service ---
 services:
   db_primary:
     image: postgres:16
@@ -12,10 +15,7 @@ services:
       - ./db/init:/docker-entrypoint-initdb.d
       - db_primary_data:/var/lib/postgresql/data
 
-volumes:
-  db_primary_data:
-
-services:
+# --- Backend API Service ---
   backend:
     build: ./backend
     container_name: backend
@@ -29,3 +29,7 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: flight_booking
+
+# --- Volumes ---
+volumes:
+  db_primary_data:

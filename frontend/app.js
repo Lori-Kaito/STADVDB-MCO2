@@ -1,38 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-// --- 1. MOCK DATA (Updated to match MCO2-Schema.sql) ---
-const mockFlightData = [
-    { 
-        id: 1, 
-        origin_code: 'MNL', 
-        destination_code: 'CEB', 
-        departure_time: '2025-12-25 10:00:00',
-        available_seats: 150, 
-        status: 'SCHEDULED' 
-    },
-    { 
-        id: 2, 
-        origin_code: 'MNL', 
-        destination_code: 'DVO', 
-        departure_time: '2025-12-26 14:00:00',
-        available_seats: 100, 
-        status: 'SCHEDULED' 
-    },
-    { 
-        id: 3, 
-        origin_code: 'CEB', 
-        destination_code: 'NRT', 
-        departure_time: '2025-12-27 09:30:00',
-        available_seats: 1,     // Low inventory for race condition test
-        status: 'SCHEDULED' 
-    }
-];
-    let mockActiveHolds = [];
-    let holdIdCounter = 0; 
-    
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+
+    // --- STATE MANAGEMENT ---
+    // We keep a local list of holds just for the UI display
+    let activeHolds = []; 
 
     // --- GET HTML ELEMENTS ---
     const flightListDiv = document.getElementById('flight-list');
@@ -40,154 +10,204 @@ const mockFlightData = [
     const messageArea = document.getElementById('message-area');
     const holdsListDiv = document.getElementById('holds-list');
 
-    // --- BOOKING FUNCTIONS ---
-async function fetchFlights() {
-    console.log('Pretending to fetch flights from API...');
-    await sleep(500); 
-
-    try {
-        const flights = mockFlightData; 
-        flightListDiv.innerHTML = ''; 
-
-        flights.forEach(flight => {
-            const flightCard = document.createElement('div');
-            flightCard.className = 'flight-card';
+    // --- FETCH FLIGHTS ---
+    async function fetchFlights() {
+        console.log('Fetching flights from Real API...');
+        try {
+            // Call the Backend API
+            const response = await fetch('http://localhost:3000/api/flights');
             
-            // Date formatting to make it look nice
-            const dateObj = new Date(flight.departure_time);
-            const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            if (!response.ok) throw new Error('Failed to fetch flights');
 
-            flightCard.innerHTML = `
-                <h3>Flight #${flight.id}: ${flight.origin_code} ➝ ${flight.destination_code}</h3>
-                <p>Departure: <strong>${dateStr}</strong></p>
-                <p>Status: <span style="color:green">${flight.status}</span></p>
-                <p><strong>Available Seats: ${flight.available_seats}</strong></p>
-            `;
-            flightListDiv.appendChild(flightCard);
-        });
-    } catch (error) {
-        flightListDiv.innerHTML = '<p>Error loading flights.</p>';
+            const flights = await response.json();
+            
+            // Clear the "Loading..." text
+            flightListDiv.innerHTML = ''; 
+
+            if (flights.length === 0) {
+                flightListDiv.innerHTML = '<p>No flights found in database.</p>';
+                return;
+            }
+
+            flights.forEach(flight => {
+                const flightCard = document.createElement('div');
+                flightCard.className = 'flight-card';
+                
+                // Format the date nicely
+                const dateObj = new Date(flight.departure_time);
+                const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // Set color based on status
+                const statusColor = flight.status === 'SCHEDULED' ? 'green' : 'red';
+
+                flightCard.innerHTML = `
+                    <h3>Flight #${flight.id}: ${flight.origin_code} ➝ ${flight.destination_code}</h3>
+                    <p>Departure: <strong>${dateStr}</strong></p>
+                    <p>Status: <span style="color:${statusColor}">${flight.status}</span></p>
+                    <p><strong>Available Seats: ${flight.available_seats}</strong></p>
+                `;
+                flightListDiv.appendChild(flightCard);
+            });
+        } catch (error) {
+            console.error(error);
+            flightListDiv.innerHTML = '<p style="color:red">Error loading flights. Is the backend running?</p>';
+        }
     }
-}
 
+    // --- HOLD SEAT ---
     async function handleHoldSubmit(event) {
         event.preventDefault(); 
         const flightId = document.getElementById('flight-id').value;
-        const seatsToHold = parseInt(document.getElementById('seats').value, 10);
-        const flight = mockFlightData.find(f => f.id == flightId);
+        const seats = document.getElementById('seats').value;
 
-        messageArea.textContent = 'Holding seat...';
+        messageArea.textContent = 'Processing...';
         messageArea.className = '';
-        await sleep(500); 
 
-        if (!flight) {
-            messageArea.textContent = `Failed: Flight ID ${flightId} not found.`;
-            messageArea.className = 'message-error';
-        } else if (flight.capacity >= seatsToHold) {
-            flight.capacity -= seatsToHold;
-            const newHold = {
-                id: holdIdCounter++,
-                flightId: flight.id,
-                flightOrigin: flight.origin,
-                flightDest: flight.destination,
-                seats: seatsToHold,
-                expiresAt: Date.now() + (1 * 60 * 1000) 
-            };
-            mockActiveHolds.push(newHold);
-            
-            messageArea.textContent = `Success! Hold ID ${newHold.id} created.`;
-            messageArea.className = 'message-success';
-            
-            fetchFlights(); 
-            renderMyHolds();
-        } else {
-            messageArea.textContent = `Failed: Not enough seats available for Flight ${flightId}. Only ${flight.capacity} left.`;
+        try {
+            // Call the Backend API
+            const response = await fetch('http://localhost:3000/api/hold', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    flight_id: flightId, 
+                    seats_to_hold: seats,
+                    user: 'customer_web' 
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // SUCCESS:
+                messageArea.textContent = `Success! Hold ID: ${result.hold_id}`;
+                messageArea.className = 'message-success';
+                
+                // 1. Refresh the flight list (to see available seats go down)
+                fetchFlights(); 
+
+                // 2. Add to our local "My Holds" list for display
+                addLocalHold(result.hold_id, flightId, seats);
+
+            } else {
+                // FAILURE (e.g. Race Condition / Not enough seats):
+                messageArea.textContent = `Failed: ${result.message}`;
+                messageArea.className = 'message-error';
+            }
+        } catch (error) {
+            console.error(error);
+            messageArea.textContent = 'Network Error. Is the backend running?';
             messageArea.className = 'message-error';
         }
+    }
+
+    // --- UI HELPER: Manage "My Active Holds" List ---
+    // This runs client-side just to show you what you booked
+    function addLocalHold(holdId, flightId, seats) {
+        const newHold = {
+            id: holdId,
+            flightId: flightId,
+            seats: seats,
+            expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes from now
+        };
+        activeHolds.push(newHold);
+        renderMyHolds();
     }
 
     function renderMyHolds() {
         holdsListDiv.innerHTML = ''; 
-        if (mockActiveHolds.length === 0) {
+        if (activeHolds.length === 0) {
             holdsListDiv.innerHTML = '<p>You have no active holds.</p>';
             return;
         }
-        mockActiveHolds.forEach(hold => {
+
+        activeHolds.forEach(hold => {
             const card = document.createElement('div');
             card.className = 'hold-card';
+            
             const timeLeft = Math.round((hold.expiresAt - Date.now()) / 1000);
+            const timerText = timeLeft > 0 ? `${timeLeft} seconds` : "Expired";
+
+            // UPDATED: Added data-id attributes to buttons so we know which hold to click
             card.innerHTML = `
                 <div class="hold-card-info">
                     <h3>Hold ID: ${hold.id} (Flight ${hold.flightId})</h3>
-                    <p>${hold.seats} seats on ${hold.flightOrigin} to ${hold.flightDest}</p>
-                    <p class="hold-timer">Expires in: ${timeLeft > 0 ? timeLeft : 0} seconds</p>
+                    <p>${hold.seats} seat(s)</p>
+                    <p class="hold-timer">Expires in: ${timerText}</p>
                 </div>
                 <div class="hold-actions">
-                    <button class="btn-confirm" data-hold-id="${hold.id}">Confirm Ticket</button>
-                    <button class="btn-cancel" data-hold-id="${hold.id}">Cancel Hold</button>
+                    <button class="btn-confirm" data-id="${hold.id}">Confirm</button>
+                    <button class="btn-cancel" data-id="${hold.id}">Cancel</button>
                 </div>
             `;
             holdsListDiv.appendChild(card);
         });
     }
 
-    function handleHoldsListClick(event) {
-        const holdId = event.target.dataset.holdId;
-        if (!holdId) return; 
+    // --- HANDLE CONFIRM / CANCEL CLICKS ---
+    holdsListDiv.addEventListener('click', async (event) => {
+        const button = event.target;
+        const holdId = button.dataset.id;
+        if (!holdId) return; // Clicked something else
 
-        if (event.target.classList.contains('btn-confirm')) {
-            mockActiveHolds = mockActiveHolds.filter(h => h.id != holdId);
-            messageArea.textContent = `Success! Ticket confirmed for Hold ID ${holdId}.`;
-            messageArea.className = 'message-success';
-            renderMyHolds();
-        }
-
-        if (event.target.classList.contains('btn-cancel')) {
-            const hold = mockActiveHolds.find(h => h.id == holdId);
-            if (hold) {
-                const flight = mockFlightData.find(f => f.id == hold.flightId);
-                if (flight) {
-                    flight.capacity += hold.seats;
-                }
-                mockActiveHolds = mockActiveHolds.filter(h => h.id != holdId);
+        // CONFIRM ACTION
+        if (button.classList.contains('btn-confirm')) {
+            messageArea.textContent = 'Confirming ticket...';
+            try {
+                const res = await fetch('http://localhost:3000/api/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hold_id: holdId })
+                });
+                const data = await res.json();
                 
-                messageArea.textContent = `Hold ID ${holdId} was cancelled. Seats released.`;
-                messageArea.className = '';
-                renderMyHolds();
-                fetchFlights(); 
-            }
-        }
-    }
-    
-    // Timer to update hold expirations
-    setInterval(() => {
-        let needsRender = false;
-        const now = Date.now();
-        mockActiveHolds.forEach(hold => {
-            if (now > hold.expiresAt) {
-                const flight = mockFlightData.find(f => f.id == hold.flightId);
-                if (flight) {
-                    flight.capacity += hold.seats;
+                if (data.success) {
+                    messageArea.textContent = `Success! Ticket confirmed for Hold ID: ${holdId}`;
+                    messageArea.className = 'message-success';
+                    // Remove from list
+                    activeHolds = activeHolds.filter(h => h.id != holdId);
+                    renderMyHolds();
+                } else {
+                    alert('Error: ' + data.message);
                 }
-                needsRender = true;
-            }
-        });
-
-        const unexpiredHolds = mockActiveHolds.filter(h => now < h.expiresAt);
-        if (unexpiredHolds.length !== mockActiveHolds.length) {
-            needsRender = true;
+            } catch (err) { console.error(err); }
         }
-        mockActiveHolds = unexpiredHolds;
 
-        if (needsRender) {
+        // CANCEL ACTION
+        if (button.classList.contains('btn-cancel')) {
+            messageArea.textContent = 'Canceling booking...';
+            try {
+                const res = await fetch('http://localhost:3000/api/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hold_id: holdId })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    messageArea.textContent = `Booking cancelled. Seats released.`;
+                    messageArea.className = 'message-success';
+                    // Remove from list
+                    activeHolds = activeHolds.filter(h => h.id != holdId);
+                    renderMyHolds();
+                    fetchFlights(); // Update flight list to show seats returned!
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) { console.error(err); }
+        }
+    });
+
+    // --- TIMER UPDATE ---
+    // Update the countdown timers every second
+    setInterval(() => {
+        if (activeHolds.length > 0) {
             renderMyHolds();
-            fetchFlights();
         }
-    }, 1000); 
+    }, 1000);
 
     // --- INITIAL PAGE LOAD ---
     holdForm.addEventListener('submit', handleHoldSubmit);
-    holdsListDiv.addEventListener('click', handleHoldsListClick);
+    
+    // Load flights immediately
     fetchFlights();
-    renderMyHolds();
 });
