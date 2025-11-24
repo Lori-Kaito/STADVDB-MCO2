@@ -14,3 +14,18 @@ services:
 
 volumes:
   db_primary_data:
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    depends_on:
+      - db_primary
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db_primary
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: flight_booking
