@@ -47,7 +47,7 @@ CREATE TABLE flight_seat_inventory (
 );
 CREATE INDEX idx_inventory_search ON flight_seat_inventory(flight_instance_id, status);
 
--- 5. TRANSACTIONS
+-- TRANSACTIONS
 CREATE TABLE bookings (
     id SERIAL PRIMARY KEY,
     user_username VARCHAR(100) NOT NULL, -- From your login screen
@@ -64,7 +64,7 @@ CREATE TABLE booking_items (
     price_at_booking DECIMAL(10, 2) NOT NULL
 );
 
--- 6. PAYMENTS (Revenue Report)
+-- PAYMENTS (Revenue Report)
 CREATE TABLE payments (
     id SERIAL PRIMARY KEY,
     booking_id INT REFERENCES bookings(id),
@@ -103,35 +103,3 @@ CREATE TABLE payments (
 -- -- 4. Else, Insert into booking_items and COMMIT;
 
 -- COMMIT;
-
--- Reports & Visualization Schema (OLAP)
-
-CREATE OR REPLACE VIEW view_report_flight_capacity AS
-SELECT 
-    r.origin_code || '-' || r.destination_code AS flight_route,
-    fi.id AS flight_instance_id,
-    COUNT(CASE WHEN fsi.status = 'SOLD' THEN 1 END) as sold_count,
-    COUNT(fsi.id) as total_capacity,
-    (COUNT(CASE WHEN fsi.status = 'SOLD' THEN 1 END)::float / NULLIF(COUNT(fsi.id),0)) * 100 as load_percentage
-FROM flight_instances fi
-JOIN routes r ON fi.route_id = r.id
-JOIN flight_seat_inventory fsi ON fi.id = fsi.flight_instance_id
-GROUP BY r.origin_code, r.destination_code, fi.id;
-
-CREATE OR REPLACE VIEW view_report_revenue AS
-SELECT 
-    r.origin_code || '-' || r.destination_code AS flight_route,
-    COALESCE(SUM(p.amount), 0) as total_revenue
-FROM payments p
-RIGHT JOIN bookings b ON p.booking_id = b.id
-RIGHT JOIN flight_instances fi ON b.flight_instance_id = fi.id
-JOIN routes r ON fi.route_id = r.id
-WHERE p.status = 'COMPLETED' OR p.status IS NULL
-GROUP BY r.origin_code, r.destination_code;
-
-CREATE OR REPLACE VIEW view_report_conversion AS
-SELECT 
-    COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END) as total_tickets,
-    COUNT(*) as total_holds,
-    (COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END)::float / NULLIF(COUNT(*),0)) * 100 as conversion_rate
-FROM bookings;
