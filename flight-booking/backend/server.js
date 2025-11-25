@@ -27,13 +27,17 @@ app.get('/api/flights', async (req, res) => {
             SELECT 
                 fi.id, 
                 r.origin_code, 
-                r.destination_code, 
+                r.destination_code,
+                r.base_price,
+                r.estimated_duration,
                 fi.departure_time, 
                 fi.status,
+                a.model as aircraft_model,
                 (SELECT COUNT(*) FROM flight_seat_inventory fsi 
                  WHERE fsi.flight_instance_id = fi.id AND fsi.status = 'AVAILABLE') as available_seats
             FROM flight_instances fi
             JOIN routes r ON fi.route_id = r.id
+            JOIN aircrafts a ON fi.aircraft_id = a.id
             ORDER BY fi.departure_time;
         `;
         const { rows } = await pool.query(query);

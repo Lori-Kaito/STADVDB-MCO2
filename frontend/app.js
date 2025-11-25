@@ -40,9 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set color based on status
                 const statusColor = flight.status === 'SCHEDULED' ? 'green' : 'red';
 
+                // Format Price to Peso
+                const priceStr = flight.base_price ? parseFloat(flight.base_price).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }) : 'N/A';
+
+                // --- DURATION FORMATTING ---
+                // Transforms {hours: 1, minutes: 25} into "1 hour and 25 minutes"
+                let durationHtml = 'N/A';
+                if (flight.estimated_duration) {
+                    const { hours, minutes } = flight.estimated_duration;
+                    const parts = [];
+                    
+                    if (hours) {
+                        parts.push(`<strong>${hours} hour${hours !== 1 ? 's' : ''}</strong>`);
+                    }
+                    if (minutes) {
+                        parts.push(`<strong>${minutes} minute${minutes !== 1 ? 's' : ''}</strong>`);
+                    }
+                    
+                    if (parts.length > 0) {
+                        // Join them with plain text " and "
+                        durationHtml = parts.join(' and ');
+                    }
+                }
+
                 flightCard.innerHTML = `
                     <h3>Flight #${flight.id}: ${flight.origin_code} ➝ ${flight.destination_code}</h3>
+                    <p><strong>Aircraft: ${flight.aircraft_model || 'Unknown'}</strong></p>
                     <p>Departure: <strong>${dateStr}</strong></p>
+                    <p>Duration: ${durationHtml}</p>                <p>Price: <strong>${priceStr}</strong></p>
                     <p>Status: <span style="color:${statusColor}">${flight.status}</span></p>
                     <p><strong>Available Seats: ${flight.available_seats}</strong></p>
                 `;
@@ -82,10 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageArea.textContent = `Success! Hold ID: ${result.hold_id}`;
                 messageArea.className = 'message-success';
                 
-                // 1. Refresh the flight list (to see available seats go down)
+                // Refresh the flight list (to see available seats go down)
                 fetchFlights(); 
 
-                // 2. Add to our local "My Holds" list for display
+                // Add to our local "My Holds" list for display
                 addLocalHold(result.hold_id, flightId, seats);
 
             } else {
