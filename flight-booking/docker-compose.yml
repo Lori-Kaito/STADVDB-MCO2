@@ -1,7 +1,7 @@
 version: '3.8'
 
-# --- Database Service ---
 services:
+  # --- Primary Database ---
   db_primary:
     image: postgres:16
     container_name: db_primary
@@ -9,13 +9,36 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: flight_booking
+      POSTGRES_HOST_AUTH_METHOD: trust   # fine for school project
     ports:
       - "5432:5432"
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d
       - db_primary_data:/var/lib/postgresql/data
+      - ./wal_archive:/var/lib/postgresql/wal_archive
+    command: >
+      -c wal_level=replica
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+      -c archive_mode=on
+      -c archive_command='test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
 
-# --- Backend API Service ---
+  # --- Hot Backup (Standby) ---
+  db_hot_backup:
+    image: postgres:16
+    container_name: db_hot_backup
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flight_booking
+      POSTGRES_HOST_AUTH_METHOD: trust
+    depends_on:
+      - db_primary
+    volumes:
+      - db_hot_backup_data:/var/lib/postgresql/data
+      - ./wal_archive:/var/lib/postgresql/wal_archive
+
+  # --- Backend API Service ---
   backend:
     build: ./backend
     container_name: backend
@@ -30,6 +53,6 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: flight_booking
 
-# --- Volumes ---
 volumes:
   db_primary_data:
+  db_hot_backup_data:

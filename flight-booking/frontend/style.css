@@ -1,0 +1,184 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* --- New Login Page Styles --- */
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+#login-form button {
+    width: 100%;
+    margin-bottom: 10px;
+}
+#login-message {
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #d9534f;
+}
+#login-admin {
+    background-color: #5bc0de;
+}
+#login-admin:hover {
+    background-color: #31b0d5;
+}
+
+/* --- New Header Styles --- */
+.header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+.header-nav a {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+}
+.header-nav a:hover {
+    text-decoration: underline;
+}
+
+/* --- Reusable Component Styles --- */
+h1, h2 {
+    color: #222;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+.header-nav h1 { /* Override for header h1 */
+    border-bottom: none;
+    padding-bottom: 0;
+    margin: 0;
+}
+
+.booking-form div {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box; /* Important for padding to work right */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+#message-area {
+    margin-top: 15px;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 4px;
+}
+.message-success {
+    color: #155724;
+    background-color: #d4edda;
+}
+.message-error {
+    color: #721c24;
+    background-color: #f8d7da;
+}
+
+.flight-card {
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+.flight-card h3 { margin: 0 0 10px 0; }
+.flight-card p { margin: 4px 0; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+#my-holds-section {
+    margin-top: 30px;
+}
+.hold-card {
+    border: 1px solid #007bff;
+    background-color: #f7faff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.hold-card-info { flex-grow: 1; }
+.hold-card-info h3 { margin: 0 0 5px 0; color: #0056b3; }
+.hold-card-info p { margin: 4px 0; }
+.hold-timer { font-weight: bold; color: #d9534f; }
+.hold-actions button { margin-left: 10px; padding: 8px 12px; font-size: 0.9rem; }
+.hold-actions .btn-confirm { background-color: #28a745; }
+.hold-actions .btn-confirm:hover { background-color: #218838; }
+.hold-actions .btn-cancel { background-color: #dc3545; }
+.hold-actions .btn-cancel:hover { background-color: #c82333; }
