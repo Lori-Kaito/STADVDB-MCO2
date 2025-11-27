@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # --- Primary Database ---
+  # --- Primary Database (Transactions) ---
   db_primary:
     image: postgres:16
     container_name: db_primary
@@ -24,7 +24,7 @@ services:
       -c archive_command='test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
       -c archive_timeout=3600
 
-  # --- Hot Backup (Standby) ---
+  # --- Hot Backup Database (Physical Replication) ---
   db_hot_backup:
     image: postgres:16
     container_name: db_hot_backup
@@ -39,26 +39,7 @@ services:
       - db_hot_backup_data:/var/lib/postgresql/data
       - wal_archive_data:/var/lib/postgresql/wal_archive
 
-  # --- Backend API Service ---
-  backend:
-    build: ./backend
-    container_name: backend
-    depends_on:
-      - db_primary
-      - db_reports
-    ports:
-      - "3000:3000"
-    environment:
-      # Primary Connection
-      DB_HOST: db_primary
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: flight_booking
-      DB_REPORTS_HOST: db_reports
-      DB_REPORTS_PORT: 5432
-
-  # --- Reports Database ---
+  # --- Reports Database (Logical Replication) ---
   db_reports:
       image: postgres:16
       container_name: db_reports
@@ -70,13 +51,50 @@ services:
       depends_on:
         - db_primary
       ports:
-        - "5433:5432"
+        - "5433:5432" # External port 5433 to avoid conflict
       volumes:
         - db_reports_data:/var/lib/postgresql/data
-        - ./db/reports:/docker-entrypoint-initdb.d
+        - ./db/init/reports.sql:/docker-entrypoint-initdb.d/reports.sql
 
+  # --- Backend API Service ---
+  backend:
+    build: ./backend
+    container_name: backend
+    depends_on:
+      - db_primary
+      - db_reports
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db_primary
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: flight_booking
+      DB_REPORTS_HOST: db_reports
+      DB_REPORTS_PORT: 5432
+
+  # --- Automated Load Tester (JMeter) ---
+  load_tester:
+    image: justb4/jmeter:5.5
+    container_name: load_tester
+    volumes:
+      - ./:/tests
+    depends_on:
+      - backend
+    entrypoint: 
+      - /bin/bash
+      - -c
+      - |
+        echo "⏳ Waiting 15s for Backend to be fully ready..."
+        sleep 15
+        echo "🚀 Starting JMeter Load Test..."
+        /entrypoint.sh -n -t /tests/flight_load_test.jmx -l /tests/docker_results.jtl -Jhostname=backend -Jport=3000 -e -o /tests/docker_html_report
+        echo "✅ Load Test Complete. Check 'docker_html_report' folder."
+
+# --- Volumes Definition ---
 volumes:
   db_primary_data:
   db_hot_backup_data:
   db_reports_data:
-  wal_archive_data: # Define the volume here
+  wal_archive_data:
