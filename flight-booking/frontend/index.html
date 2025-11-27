@@ -46,6 +46,69 @@
             </div>
         </div>
     </div>
+
+    <div id="ticket-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            
+            <div id="printable-ticket" class="boarding-pass">
+                <div class="pass-header">
+                    <h2>✈️ BOARDING PASS</h2>
+                </div>
+                <div class="pass-body">
+                    <div class="pass-row">
+                        <div>
+                            <p class="label">FROM</p>
+                            <h1 id="ticket-origin">MNL</h1>
+                        </div>
+                        <div class="plane-icon">✈</div>
+                        <div>
+                            <p class="label">TO</p>
+                            <h1 id="ticket-dest">CEB</h1>
+                        </div>
+                    </div>
+                    <div class="pass-row">
+                        <div>
+                            <p class="label">FLIGHT</p>
+                            <p id="ticket-flight-id" class="value">FL-101</p>
+                        </div>
+                        <div>
+                            <p class="label">DATE</p>
+                            <p id="ticket-date" class="value">Dec 25</p>
+                        </div>
+                        <div>
+                            <p class="label">TIME</p>
+                            <p id="ticket-time" class="value">10:00 AM</p>
+                        </div>
+                    </div>
+                    <div class="pass-row">
+                        <div>
+                            <p class="label">AIRCRAFT</p>
+                            <p id="ticket-aircraft" class="value">Boeing 737</p>
+                        </div>
+                         <div>
+                            <p class="label">SEATS</p>
+                            <p id="ticket-seats" class="value">2</p>
+                        </div>
+                        <div>
+                            <p class="label">CLASS</p>
+                            <p class="value">Economy</p>
+                        </div>
+                    </div>
+                    <div class="pass-footer">
+                        <div class="barcode">
+                            ||| | ||||| || ||| |||| || || |||||
+                        </div>
+                        <p>Ticket ID: <span id="ticket-id">#12345</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-download-pdf">🖨️ Print / Save as PDF</button>
+            </div>
+        </div>
+    </div>
     
     <script src="app.js"></script>
 </body>

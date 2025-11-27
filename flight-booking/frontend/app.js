@@ -1,27 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE MANAGEMENT ---
-    // We keep a local list of holds just for the UI display
     let activeHolds = []; 
+    let allFlights = []; // Store flight details globally
 
     // --- GET HTML ELEMENTS ---
     const flightListDiv = document.getElementById('flight-list');
     const holdForm = document.getElementById('hold-form');
     const messageArea = document.getElementById('message-area');
     const holdsListDiv = document.getElementById('holds-list');
+    
+    // Modal Elements
+    const modal = document.getElementById('ticket-modal');
+    const closeBtn = document.querySelector('.close-btn');
+    const downloadBtn = document.getElementById('btn-download-pdf');
 
     // --- FETCH FLIGHTS ---
     async function fetchFlights() {
         console.log('Fetching flights from Real API...');
         try {
-            // Call the Backend API
             const response = await fetch('http://localhost:3000/api/flights');
-            
             if (!response.ok) throw new Error('Failed to fetch flights');
 
-            const flights = await response.json();
+            allFlights = await response.json(); // Store globally for the ticket generation
+            const flights = allFlights;
             
-            // Clear the "Loading..." text
             flightListDiv.innerHTML = ''; 
 
             if (flights.length === 0) {
@@ -33,41 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const flightCard = document.createElement('div');
                 flightCard.className = 'flight-card';
                 
-                // Format the date nicely
                 const dateObj = new Date(flight.departure_time);
                 const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                // Set color based on status
                 const statusColor = flight.status === 'SCHEDULED' ? 'green' : 'red';
-
-                // Format Price to Peso
                 const priceStr = flight.base_price ? parseFloat(flight.base_price).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }) : 'N/A';
 
                 // --- DURATION FORMATTING ---
-                // Transforms {hours: 1, minutes: 25} into "1 hour and 25 minutes"
                 let durationHtml = 'N/A';
                 if (flight.estimated_duration) {
                     const { hours, minutes } = flight.estimated_duration;
                     const parts = [];
+
+                    if (hours) parts.push(`<strong>${hours} hour${hours !== 1 ? 's' : ''}</strong>`);
+                    if (minutes) parts.push(`<strong>${minutes} minute${minutes !== 1 ? 's' : ''}</strong>`);
                     
-                    if (hours) {
-                        parts.push(`<strong>${hours} hour${hours !== 1 ? 's' : ''}</strong>`);
-                    }
-                    if (minutes) {
-                        parts.push(`<strong>${minutes} minute${minutes !== 1 ? 's' : ''}</strong>`);
-                    }
-                    
-                    if (parts.length > 0) {
-                        // Join them with plain text " and "
-                        durationHtml = parts.join(' and ');
-                    }
+                    if (parts.length > 0) durationHtml = parts.join(' and ');
                 }
 
                 flightCard.innerHTML = `
                     <h3>Flight #${flight.id}: ${flight.origin_code} ➝ ${flight.destination_code}</h3>
                     <p><strong>Aircraft: ${flight.aircraft_model || 'Unknown'}</strong></p>
                     <p>Departure: <strong>${dateStr}</strong></p>
-                    <p>Duration: ${durationHtml}</p>                <p>Price: <strong>${priceStr}</strong></p>
+                    <p>Duration: ${durationHtml}</p>
+                    <p>Price: <strong>${priceStr}</strong></p>
                     <p>Status: <span style="color:${statusColor}">${flight.status}</span></p>
                     <p><strong>Available Seats: ${flight.available_seats}</strong></p>
                 `;
@@ -89,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         messageArea.className = '';
 
         try {
-            // Call the Backend API
             const response = await fetch('http://localhost:3000/api/hold', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -103,18 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.success) {
-                // SUCCESS:
                 messageArea.textContent = `Success! Hold ID: ${result.hold_id}`;
                 messageArea.className = 'message-success';
-                
-                // Refresh the flight list (to see available seats go down)
                 fetchFlights(); 
-
-                // Add to our local "My Holds" list for display
                 addLocalHold(result.hold_id, flightId, seats);
-
             } else {
-                // FAILURE (e.g. Race Condition / Not enough seats):
                 messageArea.textContent = `Failed: ${result.message}`;
                 messageArea.className = 'message-error';
             }
@@ -126,13 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- UI HELPER: Manage "My Active Holds" List ---
-    // This runs client-side just to show you what you booked
     function addLocalHold(holdId, flightId, seats) {
         const newHold = {
             id: holdId,
             flightId: flightId,
             seats: seats,
-            expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes from now
+            expiresAt: Date.now() + (5 * 60 * 1000) 
         };
         activeHolds.push(newHold);
         renderMyHolds();
@@ -152,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeLeft = Math.round((hold.expiresAt - Date.now()) / 1000);
             const timerText = timeLeft > 0 ? `${timeLeft} seconds` : "Expired";
 
-            // Added data-id attributes to buttons so we know which hold to click
             card.innerHTML = `
                 <div class="hold-card-info">
                     <h3>Hold ID: ${hold.id} (Flight ${hold.flightId})</h3>
@@ -168,13 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- HANDLE CONFIRM / CANCEL CLICKS ---
+    // --- HANDLE CONFIRM (SHOW TICKET) / CANCEL ---
     holdsListDiv.addEventListener('click', async (event) => {
         const button = event.target;
         const holdId = button.dataset.id;
-        if (!holdId) return; // Clicked something else
+        if (!holdId) return; 
 
-        // CONFIRM ACTION
+        // CONFIRM
         if (button.classList.contains('btn-confirm')) {
             messageArea.textContent = 'Confirming ticket...';
             try {
@@ -188,7 +169,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     messageArea.textContent = `Success! Ticket confirmed for Hold ID: ${holdId}`;
                     messageArea.className = 'message-success';
-                    // Remove from list
+                    
+                    // --- GENERATE DIGITAL TICKET ---
+                    const hold = activeHolds.find(h => h.id == holdId);
+                    const flight = allFlights.find(f => f.id == hold.flightId);
+                    
+                    if (flight) {
+                        const dateObj = new Date(flight.departure_time);
+                        document.getElementById('ticket-origin').textContent = flight.origin_code;
+                        document.getElementById('ticket-dest').textContent = flight.destination_code;
+                        document.getElementById('ticket-flight-id').textContent = `FL-${flight.id}`;
+                        document.getElementById('ticket-date').textContent = dateObj.toLocaleDateString();
+                        document.getElementById('ticket-time').textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        document.getElementById('ticket-aircraft').textContent = flight.aircraft_model || 'Aircraft';
+                        document.getElementById('ticket-seats').textContent = hold.seats;
+                        document.getElementById('ticket-id').textContent = `#${holdId}`;
+                        
+                        // Show Modal
+                        modal.style.display = 'flex';
+                    }
+
                     activeHolds = activeHolds.filter(h => h.id != holdId);
                     renderMyHolds();
                 } else {
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) { console.error(err); }
         }
 
-        // CANCEL ACTION
+        // CANCEL
         if (button.classList.contains('btn-cancel')) {
             messageArea.textContent = 'Canceling booking...';
             try {
@@ -211,10 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     messageArea.textContent = `Booking cancelled. Seats released.`;
                     messageArea.className = 'message-success';
-                    // Remove from list
                     activeHolds = activeHolds.filter(h => h.id != holdId);
                     renderMyHolds();
-                    fetchFlights(); // Update flight list to show seats returned!
+                    fetchFlights(); 
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -222,17 +221,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- TIMER UPDATE ---
-    // Update the countdown timers every second
+    // --- MODAL HANDLERS ---
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+    window.addEventListener('click', (e) => {
+        if (e.target == modal) modal.style.display = 'none';
+    });
+    downloadBtn.addEventListener('click', () => {
+        window.print(); 
+    });
+
+    // --- INITIAL LOAD ---
     setInterval(() => {
         if (activeHolds.length > 0) {
             renderMyHolds();
         }
     }, 1000);
 
-    // --- INITIAL PAGE LOAD ---
     holdForm.addEventListener('submit', handleHoldSubmit);
-    
-    // Load flights immediately
     fetchFlights();
 });

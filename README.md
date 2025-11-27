@@ -56,6 +56,11 @@ To prove the system handles concurrency:
 2.  Open **Apache JMeter**. (Install this as well if you haven't)
 3.  Load the included script: `flight_load_test.jmx`.
 4.  Run the test to simulate high traffic and check the generated report.
+5.  To generate the html load test report type this command on the terminal (make sure to run CMD on the folder where `flight_load_test.jmx` is placed):
+
+    ```bash
+    jmeter -n -t flight_load_test.jmx -l results.csv -e -o ./html-report
+    ```
 
 ---
 

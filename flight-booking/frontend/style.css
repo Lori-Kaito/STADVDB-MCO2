@@ -15,7 +15,7 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* --- New Login Page Styles --- */
+/* --- Login Page Styles --- */
 .login-container {
     max-width: 400px;
     margin: 100px auto;
@@ -24,155 +24,44 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-#login-form button {
-    width: 100%;
-    margin-bottom: 10px;
-}
-#login-message {
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: #d9534f;
-}
-#login-admin {
-    background-color: #5bc0de;
-}
-#login-admin:hover {
-    background-color: #31b0d5;
-}
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; }
+.form-group input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+#login-form button { width: 100%; margin-bottom: 10px; }
+#login-message { margin-bottom: 15px; font-weight: bold; color: #d9534f; }
+#login-admin { background-color: #5bc0de; }
+#login-admin:hover { background-color: #31b0d5; }
 
-/* --- New Header Styles --- */
-.header-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 10px;
-}
-.header-nav a {
-    font-weight: bold;
-    color: #007bff;
-    text-decoration: none;
-}
-.header-nav a:hover {
-    text-decoration: underline;
-}
+/* --- Header Styles --- */
+.header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+.header-nav a { font-weight: bold; color: #007bff; text-decoration: none; }
+.header-nav a:hover { text-decoration: underline; }
 
-/* --- Reusable Component Styles --- */
-h1, h2 {
-    color: #222;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 10px;
-}
-.header-nav h1 { /* Override for header h1 */
-    border-bottom: none;
-    padding-bottom: 0;
-    margin: 0;
-}
+/* --- Components --- */
+h1, h2 { color: #222; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+.header-nav h1 { border-bottom: none; padding-bottom: 0; margin: 0; }
+.booking-form div { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+input[type="text"], input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
 
-.booking-form div {
-    margin-bottom: 15px;
-}
+button { background-color: #007bff; color: white; padding: 12px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: background-color 0.2s; }
+button:hover { background-color: #0056b3; }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
+#message-area { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; }
+.message-success { color: #155724; background-color: #d4edda; }
+.message-error { color: #721c24; background-color: #f8d7da; }
 
-input[type="text"], input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box; /* Important for padding to work right */
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-button {
-    background-color: #007bff;
-    color: white;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-button:hover {
-    background-color: #0056b3;
-}
-
-#message-area {
-    margin-top: 15px;
-    font-weight: bold;
-    padding: 10px;
-    border-radius: 4px;
-}
-.message-success {
-    color: #155724;
-    background-color: #d4edda;
-}
-.message-error {
-    color: #721c24;
-    background-color: #f8d7da;
-}
-
-.flight-card {
-    border: 1px solid #ddd;
-    background-color: #fafafa;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-}
+.flight-card { border: 1px solid #ddd; background-color: #fafafa; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
 .flight-card h3 { margin: 0 0 10px 0; }
 .flight-card p { margin: 4px 0; }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-th {
-    background-color: #f9f9f9;
-    font-weight: bold;
-}
-tbody tr:nth-child(even) {
-    background-color: #fdfdfd;
-}
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: #f9f9f9; font-weight: bold; }
+tbody tr:nth-child(even) { background-color: #fdfdfd; }
 
-#my-holds-section {
-    margin-top: 30px;
-}
-.hold-card {
-    border: 1px solid #007bff;
-    background-color: #f7faff;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+#my-holds-section { margin-top: 30px; }
+.hold-card { border: 1px solid #007bff; background-color: #f7faff; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
 .hold-card-info { flex-grow: 1; }
 .hold-card-info h3 { margin: 0 0 5px 0; color: #0056b3; }
 .hold-card-info p { margin: 4px 0; }
@@ -182,3 +71,110 @@ tbody tr:nth-child(even) {
 .hold-actions .btn-confirm:hover { background-color: #218838; }
 .hold-actions .btn-cancel { background-color: #dc3545; }
 .hold-actions .btn-cancel:hover { background-color: #c82333; }
+
+/* --- TICKET MODAL STYLES --- */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    position: relative;
+    text-align: center;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+/* --- BOARDING PASS DESIGN --- */
+.boarding-pass {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #fdfdfd;
+    text-align: left;
+}
+
+.pass-header { background: #007bff; color: white; padding: 10px; text-align: center; }
+.pass-header h2 { margin: 0; border: none; font-size: 1.2rem; color: white;}
+.pass-body { padding: 20px; }
+.pass-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.label { font-size: 0.8rem; color: #777; margin: 0; }
+.value { font-size: 1.1rem; font-weight: bold; margin: 0; }
+.confirmed { color: green; }
+.plane-icon { font-size: 1.5rem; color: #ccc; }
+.pass-footer { border-top: 1px solid #eee; padding-top: 10px; font-size: 0.8rem; color: #555; text-align: center; }
+
+#btn-download-pdf { background-color: #28a745; width: 100%; }
+
+.barcode {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 900;
+    font-size: 2rem;
+    letter-spacing: -2px;
+    transform: scaleY(1.5);
+    overflow: hidden;
+    white-space: nowrap;
+    margin-bottom: 10px;
+    opacity: 0.8;
+}
+
+/* PRINT SETTINGS */
+@media print {
+    .container, .header-nav {
+        display: none !important;
+    }
+
+    body {
+        background-color: white;
+        height: auto;
+        overflow: visible;
+        margin: 0;
+        padding: 0;
+    }
+
+    #ticket-modal {
+        display: flex !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white; /* Remove the gray dimmed background */
+        z-index: 9999;
+        align-items: flex-start; /* Align ticket to top */
+        padding-top: 50px;
+    }
+
+    .modal-content {
+        box-shadow: none; /* Remove shadow for cleaner print */
+        width: 100%;
+        max-width: 600px; /* Prevent it from being too wide */
+        margin: 0 auto;
+    }
+
+    .close-btn, .modal-actions {
+        display: none !important;
+    }
+
+    #printable-ticket {
+        visibility: visible;
+        border: 2px solid #000; /* Solid border looks better on paper */
+    }
+}
