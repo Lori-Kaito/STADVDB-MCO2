@@ -72,34 +72,3 @@ CREATE TABLE payments (
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'COMPLETED'
 );
-
-
--- -- PSEUDO-SQL for the "Hold Seat" Endpoint
-
--- BEGIN;
-
--- -- 1. Create the booking record
--- INSERT INTO bookings (user_username, flight_instance_id, expires_at) 
--- VALUES ('customer', 1, NOW() + INTERVAL '5 minutes') 
--- RETURNING id INTO v_booking_id;
-
--- -- 2. LOCK N available seats (Batch Operation)
--- -- This is the magic query. It finds N available seats and locks them instantly.
--- WITH locked_seats AS (
---     SELECT id 
---     FROM flight_seat_inventory
---     WHERE flight_instance_id = 1 
---       AND status = 'AVAILABLE'
---     LIMIT 5 -- (User requested 5 seats)
---     FOR UPDATE SKIP LOCKED
--- )
--- UPDATE flight_seat_inventory
--- SET status = 'HELD'
--- FROM locked_seats
--- WHERE flight_seat_inventory.id = locked_seats.id
--- RETURNING flight_seat_inventory.id, price;
-
--- -- 3. If update count < 5, ROLLBACK (Not enough seats);
--- -- 4. Else, Insert into booking_items and COMMIT;
-
--- COMMIT;
