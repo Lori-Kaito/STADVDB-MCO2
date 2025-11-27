@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # --- Primary Database ---
   db_primary:
@@ -17,7 +15,7 @@ services:
       - db_primary_data:/var/lib/postgresql/data
       - ./wal_archive:/var/lib/postgresql/wal_archive
     command: >
-      -c wal_level=replica
+      -c wal_level=logical
       -c max_wal_senders=10
       -c max_replication_slots=10
       -c archive_mode=on
@@ -54,6 +52,23 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: flight_booking
 
+  db_reports:
+      image: postgres:16
+      container_name: db_reports
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: flight_reports
+        POSTGRES_HOST_AUTH_METHOD: trust
+      depends_on:
+        - db_primary
+      ports:
+        - "5433:5432"        # optional, only if you want to connect directly from host
+      volumes:
+        - db_reports_data:/var/lib/postgresql/data
+        - ./db/reports:/docker-entrypoint-initdb.d
+
 volumes:
   db_primary_data:
   db_hot_backup_data:
+  db_reports_data:

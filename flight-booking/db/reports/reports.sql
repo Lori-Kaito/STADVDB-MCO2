@@ -1,4 +1,51 @@
--- Reports & Visualization Schema (OLAP)
+-- Only the tables needed for reports:
+-- routes, flight_instances, flight_seat_inventory, bookings, payments
+
+CREATE TABLE IF NOT EXISTS routes (
+    id              INT PRIMARY KEY,
+    origin_code     CHAR(3),
+    destination_code CHAR(3),
+    base_price      DECIMAL(10, 2),
+    estimated_duration INTERVAL
+);
+
+CREATE TABLE IF NOT EXISTS flight_instances (
+    id            INT PRIMARY KEY,
+    route_id      INT,
+    aircraft_id   INT,
+    departure_time TIMESTAMP NOT NULL,
+    status        VARCHAR(20) DEFAULT 'SCHEDULED'
+);
+
+CREATE TABLE IF NOT EXISTS flight_seat_inventory (
+    id                 BIGINT PRIMARY KEY,
+    flight_instance_id INT,
+    seat_number        VARCHAR(5),
+    seat_class         VARCHAR(20) DEFAULT 'ECONOMY',
+    status             VARCHAR(20) DEFAULT 'AVAILABLE',
+    price              DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+    id                INT PRIMARY KEY,
+    user_username     VARCHAR(100) NOT NULL,
+    flight_instance_id INT,
+    status            VARCHAR(20) DEFAULT 'HELD',
+    created_at        TIMESTAMP,
+    expires_at        TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id           INT PRIMARY KEY,
+    booking_id   INT,
+    amount       DECIMAL(10, 2) NOT NULL,
+    payment_date TIMESTAMP,
+    status       VARCHAR(20) DEFAULT 'COMPLETED'
+);
+
+-- ============================================
+-- OLAP Views
+-- ============================================
 
 -- Report 1: Flight Capacity
 CREATE OR REPLACE VIEW view_report_flight_capacity AS

@@ -17,7 +17,6 @@ docker exec -u postgres db_primary bash -c "
 
 echo "Resetting hot backup data directory..."
 docker exec -u postgres db_hot_backup bash -c "
-  /usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/data stop || echo 'standby already stopped';
   rm -rf /var/lib/postgresql/data/*;
 "
 
@@ -28,11 +27,6 @@ docker exec -u postgres db_hot_backup bash -c "
     -D /var/lib/postgresql/data \
     -U postgres \
     -Fp -Xs -P -R
-"
-
-echo "Starting hot backup in standby mode..."
-docker exec -u postgres db_hot_backup bash -c "
-  /usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/data -w start
 "
 
 echo "Hot backup setup complete."
