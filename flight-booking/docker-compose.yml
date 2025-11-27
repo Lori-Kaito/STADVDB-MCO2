@@ -22,6 +22,7 @@ services:
       -c max_replication_slots=10
       -c archive_mode=on
       -c archive_command='test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
+      -c archive_timeout=3600
 
   # --- Hot Backup (Standby) ---
   db_hot_backup:
