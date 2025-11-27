@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # --- Primary Database ---
   db_primary:
@@ -7,13 +9,13 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: flight_booking
-      POSTGRES_HOST_AUTH_METHOD: trust   # fine for school project
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d
       - db_primary_data:/var/lib/postgresql/data
-      - ./wal_archive:/var/lib/postgresql/wal_archive
+      - wal_archive_data:/var/lib/postgresql/wal_archive
     command: >
       -c wal_level=logical
       -c max_wal_senders=10
@@ -35,7 +37,7 @@ services:
       - db_primary
     volumes:
       - db_hot_backup_data:/var/lib/postgresql/data
-      - ./wal_archive:/var/lib/postgresql/wal_archive
+      - wal_archive_data:/var/lib/postgresql/wal_archive
 
   # --- Backend API Service ---
   backend:
@@ -43,15 +45,20 @@ services:
     container_name: backend
     depends_on:
       - db_primary
+      - db_reports
     ports:
       - "3000:3000"
     environment:
+      # Primary Connection
       DB_HOST: db_primary
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: flight_booking
+      DB_REPORTS_HOST: db_reports
+      DB_REPORTS_PORT: 5432
 
+  # --- Reports Database ---
   db_reports:
       image: postgres:16
       container_name: db_reports
@@ -63,7 +70,7 @@ services:
       depends_on:
         - db_primary
       ports:
-        - "5433:5432"        # optional, only if you want to connect directly from host
+        - "5433:5432"
       volumes:
         - db_reports_data:/var/lib/postgresql/data
         - ./db/reports:/docker-entrypoint-initdb.d
@@ -72,3 +79,4 @@ volumes:
   db_primary_data:
   db_hot_backup_data:
   db_reports_data:
+  wal_archive_data: # Define the volume here
