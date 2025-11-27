@@ -1,6 +1,6 @@
 # ✈️ Flight Booking System (MCO2)
 
-A full-stack flight booking application built to handle **high-concurrency** operations. This system prevents double-booking (race conditions) using database row-level locking.
+A flight booking application built to handle **high-concurrency** operations. This system prevents double booking (race conditions) using database row-level locking.
 
 ## ✨ Features
 
@@ -43,14 +43,14 @@ A full-stack flight booking application built to handle **high-concurrency** ope
     ```
 
 3.  **Open the App**
-    * **Website:** Open `frontend/login.html` in your browser (or use Live Server).
+    * **Website:** Open `frontend/login.html` in your browser.
     * **API:** Running at `http://localhost:3000`
 
 ---
 
 ## 🧪 Load Testing (Race Conditions)
 
-To prove the system handles concurrency (100+ users booking at once):
+To prove the system handles concurrency:
 
 1.  Ensure the app is running (the database comes seeded with 100+ flights).
 2.  Open **Apache JMeter**. (Install this as well if you haven't)
@@ -61,6 +61,6 @@ To prove the system handles concurrency (100+ users booking at once):
 
 ## 👥 Developers
 
-* **[Dlareinnej Jherby Jaime]**
-* **[Phoenix Claire De Castro]**
-* **[Rahmon Khayle Del Mundo]**
+* **Dlareinnej Jherby Jaime**
+* **Phoenix Claire De Castro**
+* **Rahmon Khayle Del Mundo**
